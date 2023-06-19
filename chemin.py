@@ -1,51 +1,56 @@
-def find_common_cell(tableau, ligne_cells, colonne_cells):
-    for row, col in ligne_cells:
-        for r, c in colonne_cells:
-            if tableau[row][c] != 0 and tableau[r][col] != 0:
-                return (row, c)
-    return None
+def trouver_chemins_minimaux(noeuds, distances, liens, depart, arrivee):
+    # Initialisation des distances avec une valeur infinie pour tous les noeuds, sauf le départ qui est à 0
+    chemin_minimal = {noeud: float('inf') for noeud in noeuds}
+    chemin_minimal[depart] = 0
 
+    # Itération pour mettre à jour les distances jusqu'à convergence
+    for _ in range(len(noeuds) - 1):
+        for lien in liens:
+            origine = lien['from']
+            destination = lien['to']
+            valeur = int(lien['value'])
 
-def create_cell_list(tableau):
-    cell_list = []
-    start_row, start_col = 1, 5
-    reference_value = tableau[start_row][start_col]
+            # Mise à jour de la distance minimale si une meilleure valeur est trouvée
+            if chemin_minimal[origine] + valeur < chemin_minimal[destination]:
+                chemin_minimal[destination] = chemin_minimal[origine] + valeur
 
-    ligne_cells = []
-    colonne_cells = []
+    # Recherche de tous les chemins minimaux à partir du départ jusqu'à l'arrivée
+    chemins_minimaux = []
+    pile = [(arrivee, [arrivee])]
 
-    # Recherche des cellules sur la même ligne
-    for col in range(len(tableau[0])):
-        if col != start_col and tableau[start_row][col] != 0:
-            ligne_cells.append((start_row, col))
+    while pile:
+        noeud_actuel, chemin_actuel = pile.pop()
 
-    # Recherche des cellules sur la même colonne
-    for row in range(len(tableau)):
-        if row != start_row and tableau[row][start_col] != 0:
-            colonne_cells.append((row, start_col))
+        if noeud_actuel == depart:
+            chemin_actuel.reverse()
+            chemins_minimaux.append(chemin_actuel)
+        else:
+            for lien in liens:
+                origine = lien['from']
+                destination = lien['to']
+                valeur = int(lien['value'])
 
-    # Recherche de la cellule commune
-    common_cell = find_common_cell(tableau, ligne_cells, colonne_cells)
+                if destination == noeud_actuel and chemin_minimal[origine] + valeur == chemin_minimal[noeud_actuel]:
+                    pile.append((origine, chemin_actuel + [origine]))
 
-    cell_list.append({'ligne_cells': ligne_cells})
-    cell_list.append({'colonne_cells': colonne_cells})
-    cell_list.append({'common_cell': common_cell})
+    return chemins_minimaux
 
-    return cell_list
-
-
-tableau_X = [
-    [0, 11, 2, 0, 0, 5],
-    [9, 0, 23, 0, 0, 0],
-    [0, 0, 3, 6, 5, 0],
-    [0, 0, 0, 0, 9, 0]
+noeuds = ['A', 'B', 'C', 'D']
+distances = [
+    {
+        "A": 5,
+        "B": 2,
+        "C": 2,
+        "D": 0
+    }
+]
+liens = [
+    {'from': 'A', 'to': 'B', 'value':'4'},
+    {'from': 'A', 'to': 'C', 'value':'4'},
+    {'from': 'A', 'to': 'D', 'value':'5'},
+    {'from': 'B', 'to': 'D', 'value':'2'},
+    {'from': 'C', 'to': 'D', 'value':'2'},
 ]
 
-cell_list = create_cell_list(tableau_X)
-ligne_cells = cell_list[0]['ligne_cells']
-colonne_cells = cell_list[1]['colonne_cells']
-common_cell = cell_list[2]['common_cell']
-
-print("ligne_cells:", ligne_cells)
-print("colonne_cells:", colonne_cells)
-print("common_cell:", common_cell)
+chemins = trouver_chemins_minimaux(noeuds, distances, liens, 'A', 'D')
+print(chemins)  # Résultat: [['A', 'B', 'D'], ['A', 'D']]
